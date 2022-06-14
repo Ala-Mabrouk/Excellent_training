@@ -1,21 +1,22 @@
-const { query, json } = require("express");
+
 const express = require("express");
 const connction = require("../connectionDb");
 const route = express.Router();
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 var auth = require("../Services/authentication");
-// saving new user post request
 
+
+// saving new user post request
 route.post("/signup", (req, res) => {
   let newUser = req.body;
   //test existance of user
-  query = "select * from users where userEmail=?";
-  connction.query(query, [newUser.email], (err, result) => {
+  var cquery = "select * from users where userEmail=?";
+  connction.query(cquery, [newUser.email], (err, result) => {
     if (!err) {
       if (result.length <= 0) {
         //creation of new user
-        query =
+        var query =
           "insert into users(userName,userLastName,userEmail,userPassword,userPhone,userRoleID) values(?,?,?,?,?,1)";
         connction.query(
           query,
@@ -92,6 +93,7 @@ route.post("/forgetPass", (req, res) => {
 
 route.get("/getUserInfo", auth.authenticateToken, (req, res) => {
   let query = "select userName,userLastName,userEmail from users where userEmail=?";
+
   const userMail = req.body.email;
   connction.query(query, [userMail], (err, resultQuery) => {
     if (!err) {
@@ -101,16 +103,14 @@ route.get("/getUserInfo", auth.authenticateToken, (req, res) => {
   })
 })
 
-
-
-
-
-
-
-
-
-
-
-
+route.get("/allUsers", auth.authenticateToken, auth.check_role, (req, res) => {
+  let query = "select userName,userLastName,userEmail from users";
+  connction.query(query, (err, resultQuery) => {
+    if (!err) {
+      return res.status(200).json(resultQuery);
+    }
+    return res.status(500).json(err);
+  })
+})
 
 module.exports = route;
